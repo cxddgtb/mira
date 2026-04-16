@@ -2,7 +2,7 @@ name: Auto-Update MiraPlay Subscription
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时 (UTC) → 北京时间 8/14/20/2 点
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,44 +10,73 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONIOENCODING: utf-8
+      PYTHONUTF8: 1
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
+          pip list
 
-      - name: Run Collector
-        run: python main.py
-
-      - name: Commit & Push
+      - name: Run collector script
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/index.js.md5 data/latest.json data/archives/
-          if git diff --cached --quiet; then
-            echo "📭 无变更，跳过提交"
+          echo "=== Starting MiraPlay Collector ==="
+          python main.py
+          echo "=== Collector finished ==="
+        env:
+          PYTHONHASHSEED: 0
+
+      - name: Check generated files
+        run: |
+          echo "=== Checking data directory ==="
+          ls -la data/ || echo "data directory not found"
+          if [ -f "data/index.js.md5" ]; then
+            echo "✓ index.js.md5 generated successfully"
+            head -20 data/index.js.md5
           else
-            # 统计接口数量
-            COUNT=$(python -c "
-            import json, re
-            content = open('data/index.js.md5', encoding='utf-8').read()
-            match = re.search(r'var config = ({.*?});', content, re.S)
-            if match:
-                cfg = json.loads(match.group(1))
-                sites = len(cfg.get('sites', []))
-                lives = len(cfg.get('lives', []))
-                print(f'{sites}点播+{lives}直播')
-            else:
-                print('解析失败'
-            )")
-            git commit -m "🤖 MiraPlay Auto $(date +'%Y-%m-%d %H:%M') UTC | $COUNT | 中文无损 | Basic Auth 支持"
-            git push
+            echo "✗ index.js.md5 not found"
           fi
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global init.defaultBranch main
+          
+          # Check if there are changes to commit
+          if git status --porcelain | grep -q "data/"; then
+            git add data/index.js.md5 data/latest.json data/archives/ 2>/dev/null || true
+            
+            if ! git diff --staged --quiet; then
+              # Count interfaces
+              SITES_COUNT=$(python3 -c "
+              try:
+                  import json
+                  with open('data/latest.json', 'r', encoding='utf-8') as f:
+                      data = json.load(f)
+                  print(len(data))
+              except:
+                  print('0')
+              " 2>/dev/null || echo "0")
+              
+              git commit -m "🤖 Auto-update: ${SITES_COUNT} interfaces | $(date +'%Y-%m-%d %H:%M') UTC"
+              git push -f origin main
+              echo "✓ Changes committed and pushed"
+            else
+              echo "ℹ️ No changes to commit"
+            fi
+          else
+            echo "ℹ️ No data files to commit"
+          fi
+        continue-on-error: true
