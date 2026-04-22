@@ -1,0 +1,69 @@
+{
+  "sites": [
+    {
+      "key": "tencent",
+      "name": "腾讯视频",
+      "type": 0,
+      "api": "https://api.v.qq.com/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    },
+    {
+      "key": "iqiyi",
+      "name": "爱奇艺",
+      "type": 0,
+      "api": "https://api.iqiyi.com/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    },
+    {
+      "key": "youku",
+      "name": "优酷",
+      "type": 0,
+      "api": "https://api.youku.com/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    },
+    {
+      "key": "mgtv",
+      "name": "芒果TV",
+      "type": 0,
+      "api": "https://api.mgtv.com/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    }
+  ],
+  "parses": [
+    {
+      "name": "高清解析",
+      "type": 0,
+      "url": "https://jx.vip.qq.com/?url=",
+      "ua": "Mozilla/5.0"
+    },
+    {
+      "name": "极速解析",
+      "type": 0,
+      "url": "https://jx.youku.com/?url=",
+      "ua": "Mozilla/5.0"
+    }
+  ],
+  "flags": [
+    {
+      "flag": "mgtv",
+      "name": "芒果"
+    },
+    {
+      "flag": "bilibili",
+      "name": "B站"
+    }
+  ],
+  "ijk": [],
+  "ads": [],
+  "wallpaper": "",
+  "spider": "",
+  "lives": []
+}

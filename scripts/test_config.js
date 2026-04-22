@@ -1,0 +1,73 @@
+// 测试用配置文件 - 模拟 CatPawOpen 接口配置
+var index_config_default = {
+  "sites": [
+    {
+      "key": "douban",
+      "name": "🎬 豆瓣电影",
+      "type": 3,
+      "api": "csp_DoubanMovie",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 1
+    },
+    {
+      "key": "cctv",
+      "name": "📺 CCTV",
+      "type": 0,
+      "api": "https://api.cctv.com/v1/",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0
+    },
+    {
+      "key": "bilibili",
+      "name": "🎥 哔哩哔哩",
+      "type": 3,
+      "api": "csp_Bilibili",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    }
+  ],
+  "parses": [
+    {
+      "name": "官方解析",
+      "type": 0,
+      "url": "https://jx.jsonplayer.com/player/?url=",
+      "ua": ""
+    },
+    {
+      "name": "备用解析1",
+      "type": 0,
+      "url": "https://jx.xmflv.com/?url=",
+      "ua": ""
+    },
+    {
+      "name": "备用解析2",
+      "type": 0,
+      "url": "https://jx.playerjy.com/?url=",
+      "ua": ""
+    }
+  ],
+  "flags": [
+    {
+      "flag": "youku",
+      "name": "优酷"
+    },
+    {
+      "flag": "qq",
+      "name": "腾讯"
+    },
+    {
+      "flag": "iqiyi",
+      "name": "爱奇艺"
+    }
+  ],
+  "ijk": [],
+  "ads": [],
+  "wallpaper": "",
+  "spider": "",
+  "lives": []
+};
+
+module.exports = index_config_default;

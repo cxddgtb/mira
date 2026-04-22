@@ -1,0 +1,116 @@
+name: MiraPlay Interface Aggregator
+
+# 触发条件：
+# 1. 每天凌晨 UTC 0 点自动运行
+# 2. 手动触发 (Workflow Dispatch)
+# 3. Push 到 main 分支时运行
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 0 点
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/merge-interfaces.yml'
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 设置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          # 如果有 requirements.txt 则安装
+          if [ -f scripts/requirements.txt ]; then
+            pip install -r scripts/requirements.txt
+          fi
+
+      - name: 🔀 运行整合脚本
+        run: |
+          python scripts/merge_interfaces.py
+
+      - name: 📊 生成报告
+        run: |
+          cat > dist/README.md << 'EOF'
+          # MiraPlay 整合接口
+
+          这是由 GitHub Actions 自动生成的 MiraPlay 接口整合源。
+
+          ## 订阅地址
+
+          将以下地址添加到 MiraPlay 的订阅管理中：
+
+          ```
+          https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/index.config.js.md5
+          ```
+
+          或使用 GitHub Pages 加速版本（推荐）：
+
+          ```
+          https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/index.config.js.md5
+          ```
+
+          ## 更新频率
+
+          - 自动更新：每天 UTC 0 点
+          - 手动更新：可通过 GitHub Actions 手动触发
+
+          ## 包含的源
+
+          - 王二小 (蓝光首选)
+          - Jsnzkpg 开发者源
+          - 9280 公益源
+          - Jadehh 爬虫源
+
+          ## 文件说明
+
+          - `index.config.js` - 合并后的配置文件
+          - `index.config.js.md5` - MD5 校验值
+          - `metadata.json` - 整合元数据
+          - `README.md` - 本文件
+
+          ---
+
+          *最后更新: $(date)*
+          EOF
+
+      - name: 🚀 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          cname: ''  # 如果有自定义域名，在这里配置
+
+      - name: 📝 提交更改
+        run: |
+          git config user.name "MiraPlay Aggregator Bot"
+          git config user.email "bot@miraplay.local"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "✅ 没有文件变更"
+          else
+            git commit -m "🤖 自动整合接口源 - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git push
+          fi
+
+      - name: ✅ 完成
+        run: |
+          echo "🎉 整合完成！"
+          echo "📍 输出文件已保存到 dist/ 目录"
+          echo "🌐 GitHub Pages 地址: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
