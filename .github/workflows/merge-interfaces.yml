@@ -31,15 +31,16 @@ jobs:
       - name: Check generated files
         run: |
           echo "=== Generated files ==="
-          ls -lh dist/
-          head -20 dist/index.config.js
-          cat dist/index.config.js.md5
+          ls -lh index.config.js index.config.js.md5 metadata.json
+          head -20 index.config.js
+          cat index.config.js.md5
 
       - name: Commit changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add dist/
+          # ✅ 修改点：改为添加根目录的三个文件
+          git add index.config.js index.config.js.md5 metadata.json
           if git diff --cached --quiet; then
             echo "No changes"
           else
@@ -51,4 +52,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./
