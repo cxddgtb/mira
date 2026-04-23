@@ -1,6 +1,3 @@
-// MiraPlay Interface Aggregator
-生成时间: 2026-04-23T10:37:03.618227
-
 var index_config_default = {
   "ali": {
     "token": "",
