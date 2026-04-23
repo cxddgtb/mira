@@ -1,8 +1,10 @@
 {
-  "generated_at": "2026-04-23T10:20:32.140228",
+  "generated_at": "2026-04-23T10:37:03.618816",
   "merged_sources": 2,
   "total_sites": 7,
-  "total_parses": 5,
-  "config_md5": "28331d8170c3754ee3c50f1f66dc0a03",
-  "index_md5": "3e61fcd8825625405cc72c71bd594654"
+  "total_cms": 0,
+  "total_t4": 0,
+  "total_alist": 0,
+  "config_md5": "07be227dc02cf80f56ea942defcb81cd",
+  "index_md5": "07be227dc02cf80f56ea942defcb81cd"
 }
