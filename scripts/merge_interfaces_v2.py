@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-MiraPlay Interface Aggregator - 最终修复版
-生成与参考项目完全一致的简单配置格式
+MiraPlay Interface Aggregator - 修复MD5计算
 """
 
 import json
@@ -15,11 +14,11 @@ OUTPUT_DIR = Path(__file__).parent.parent
 SCRIPTS_DIR = Path(__file__).parent
 
 def generate_md5(content: str) -> str:
-    """生成纯32位MD5哈希（无换行，小写）"""
-    return hashlib.md5(content.encode("utf-8")).hexdigest().lower()
+    """生成MD5（小写，无换行）"""
+    return hashlib.md5(content.encode('utf-8')).hexdigest().lower()
 
 def load_local_configs() -> List[Dict[str, Any]]:
-    """加载本地 test_config*.json 文件"""
+    """加载本地配置"""
     configs = []
     for config_file in sorted(SCRIPTS_DIR.glob("test_config*.json")):
         try:
@@ -35,8 +34,8 @@ def load_local_configs() -> List[Dict[str, Any]]:
             print(f"  ❌ {config_file.name}: {e}")
     return configs
 
-def merge_simple_config(configs: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """合并为简单配置格式（与参考项目一致）"""
+def merge_configs(configs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """合并配置"""
     merged = {
         "ali": {"token": "", "token280": ""},
         "quark": {"cookie": ""},
@@ -99,93 +98,92 @@ def merge_simple_config(configs: List[Dict[str, Any]]) -> Dict[str, Any]:
     
     return merged
 
-def generate_config_content(merged: Dict[str, Any]) -> str:
-    """生成配置文件内容（简单格式，与参考项目一致）"""
-    js_obj = json.dumps(merged, ensure_ascii=False, indent=2)
-    return f"var index_config_default = {js_obj};\n"
-
-def write_md5_file(filepath: Path, content: str):
-    """写入.md5文件：纯32位哈希，无换行"""
-    md5_hash = generate_md5(content)
-    with open(filepath, "w", encoding="utf-8", newline="") as f:
-        f.write(md5_hash)  # 只写哈希，不换行
-    return md5_hash
-
 def main():
     print("=" * 70)
-    print("🚀 MiraPlay 接口整合（最终修复版）")
+    print("🚀 MiraPlay 接口整合")
     print("=" * 70)
-    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     
     # 1. 加载配置
-    print("📥 加载配置文件...")
+    print("\n📥 加载配置...")
     configs = load_local_configs()
     if not configs:
-        print("❌ 未找到 test_config*.json 文件")
+        print("❌ 未找到配置文件")
         return False
-    print(f"✅ 加载 {len(configs)} 个配置\n")
+    print(f"✅ {len(configs)} 个配置\n")
     
     # 2. 合并配置
     print("🔀 合并配置...")
-    merged = merge_simple_config(configs)
-    print(f"  📺 Sites: {len(merged['sites']['list'])}")
-    print(f"  🎬 CMS: {len(merged['cms']['list'])}")
-    print(f"  🎯 T4: {len(merged['t4']['list'])}\n")
+    merged = merge_configs(configs)
+    print(f"  Sites: {len(merged['sites']['list'])}")
+    print(f"  CMS: {len(merged['cms']['list'])}\n")
     
-    # 3. 生成文件
+    # 3. 生成 index.config.js
     print("💾 生成文件...\n")
     
-    # index.config.js
-    config_content = generate_config_content(merged)
+    config_content = f"""// MiraPlay Interface Aggregator
+// 生成时间: {datetime.now().isoformat()}
+// 合并源数: {len(configs)}
+
+var index_config_default = {json.dumps(merged, ensure_ascii=False, indent=1)};
+
+module.exports = index_config_default;
+"""
+    
     config_path = OUTPUT_DIR / "index.config.js"
     with open(config_path, "w", encoding="utf-8") as f:
         f.write(config_content)
     print(f"  ✅ index.config.js")
     
-    # index.config.js.md5
-    config_md5 = write_md5_file(OUTPUT_DIR / "index.config.js.md5", config_content)
+    # 4. 生成 index.config.js.md5
+    config_md5 = generate_md5(config_content)
+    config_md5_path = OUTPUT_DIR / "index.config.js.md5"
+    with open(config_md5_path, "w", encoding="utf-8", newline="") as f:
+        f.write(config_md5)  # 只写MD5，无换行
     print(f"  ✅ index.config.js.md5 ({config_md5})")
     
-    # index.js（与 index.config.js 内容相同）
+    # 5. 生成 index.js（与 index.config.js 内容完全相同）
     index_path = OUTPUT_DIR / "index.js"
     with open(index_path, "w", encoding="utf-8") as f:
         f.write(config_content)
     print(f"  ✅ index.js")
     
-    # index.js.md5
-    index_md5 = write_md5_file(OUTPUT_DIR / "index.js.md5", config_content)
-    print(f"  ✅ index.js.md5 ({index_md5})")
+    # 6. 生成 index.js.md5（与 index.config.js.md5 相同）
+    index_md5_path = OUTPUT_DIR / "index.js.md5"
+    with open(index_md5_path, "w", encoding="utf-8", newline="") as f:
+        f.write(config_md5)  # 使用相同的MD5
+    print(f"  ✅ index.js.md5 ({config_md5})")
     
-    # metadata.json
+    # 7. 生成 metadata.json
     metadata = {
         "generated_at": datetime.now().isoformat(),
         "merged_sources": len(configs),
         "total_sites": len(merged["sites"]["list"]),
-        "config_md5": config_md5,
-        "index_md5": index_md5
+        "md5": config_md5
     }
     with open(OUTPUT_DIR / "metadata.json", "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
     print(f"  ✅ metadata.json\n")
     
-    # 4. 验证
-    print("✅ 验证文件...")
+    # 8. 验证
+    print("✅ 验证...")
     with open(config_path, "r", encoding="utf-8") as f:
-        verify = f.read()
-    if generate_md5(verify) == config_md5:
-        print("  ✅ MD5 校验通过")
+        verify_content = f.read()
+    verify_md5 = generate_md5(verify_content)
+    
+    if verify_md5 == config_md5:
+        print(f"  ✅ MD5 验证通过")
     else:
-        print("  ❌ MD5 校验失败")
+        print(f"  ❌ MD5 验证失败：{verify_md5} != {config_md5}")
         return False
     
-    print()
-    print("=" * 70)
+    print("\n" + "=" * 70)
     print("✨ 完成！")
     print("=" * 70)
-    print(f"\n🔗 订阅链接（任选其一）:")
+    print(f"\n🔗 订阅链接:")
     print(f"  https://raw.githubusercontent.com/cxddgtb/mira/main/index.config.js.md5")
     print(f"  https://raw.githubusercontent.com/cxddgtb/mira/main/index.js.md5")
     print()
+    
     return True
 
 if __name__ == "__main__":
