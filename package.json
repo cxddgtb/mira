@@ -1,0 +1,27 @@
+{
+  "name": "miraplay-aggregator",
+  "version": "1.0.0",
+  "description": "MiraPlay 接口整合工作流 - 自动合并多个影视源为一个统一的订阅接口",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cxddgtb/mira"
+  },
+  "keywords": [
+    "miraplay",
+    "tvbox",
+    "catpawopen",
+    "aggregator",
+    "interface",
+    "automation"
+  ],
+  "scripts": {
+    "aggregate": "python scripts/merge_interfaces_v2.py",
+    "demo": "python scripts/test_merge_demo.py",
+    "test": "echo 'No tests configured'"
+  },
+  "engines": {
+    "python": ">=3.9"
+  }
+}

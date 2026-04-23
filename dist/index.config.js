@@ -1,6 +1,7 @@
 // MiraPlay Interface Aggregator
-// 生成时间: 2026-04-23T10:11:03.465465
+// 生成时间: 2026-04-23T10:01:47.390420
 // 合并源数: 2
+// 生成工具: https://github.com/cxddgtb/mira
 
 var index_config_default = {
   "sites": [
