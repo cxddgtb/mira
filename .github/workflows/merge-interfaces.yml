@@ -31,16 +31,18 @@ jobs:
       - name: Check generated files
         run: |
           echo "=== Generated files ==="
-          ls -lh index.config.js index.config.js.md5 metadata.json
-          head -20 index.config.js
+          ls -lh index.config.js index.config.js.md5 index.js index.js.md5 metadata.json
+          echo "=== index.config.js.md5 ==="
           cat index.config.js.md5
+          echo ""
+          echo "=== index.js.md5 ==="
+          cat index.js.md5
 
       - name: Commit changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          # ✅ 修改点：改为添加根目录的三个文件
-          git add index.config.js index.config.js.md5 metadata.json
+          git add index.config.js index.config.js.md5 index.js index.js.md5 metadata.json
           if git diff --cached --quiet; then
             echo "No changes"
           else
