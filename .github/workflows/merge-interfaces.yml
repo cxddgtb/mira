@@ -5,53 +5,33 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
   push:
-    branches:
-      - main
-    paths:
-      - 'scripts/**'
+    branches: [main]
+    paths: ['scripts/**']
 
 jobs:
   aggregate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
+    permissions: {contents: write}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Run aggregation script
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: {python-version: '3.11'}
+      - name: Run script
         run: python scripts/merge_interfaces_v2.py
-
-      - name: Check generated files
+      - name: Verify files
         run: |
-          echo "=== Generated files ==="
-          ls -lh index.config.js index.config.js.md5 index.js index.js.md5 metadata.json
-          echo "=== index.config.js.md5 ==="
-          cat index.config.js.md5
-          echo ""
-          echo "=== index.js.md5 ==="
-          cat index.js.md5
-
-      - name: Commit changes
+          echo "=== Files ==="
+          ls -lh index.config.js index.config.js.md5 index.js index.js.md5
+          echo "=== MD5 Check ==="
+          cat index.js.md5 && echo ""
+          md5sum index.js
+      - name: Commit
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add index.config.js index.config.js.md5 index.js index.js.md5 metadata.json
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "chore: auto update interface config $(date -u +'%Y-%m-%d %H:%M:%S')"
-            git push
-          fi
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+          git diff --cached --quiet || git commit -m "chore: update config $(date -u +'%Y-%m-%d')" && git push
+      - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
