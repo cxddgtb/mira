@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-MiraPlay Interface Aggregator - 整合脚本 v2 (根目录输出版)
-- 自动从本地配置生成合并接口
-- 生成文件直接输出到仓库根目录
+MiraPlay Interface Aggregator - 整合脚本 v2
+生成 index.config.js 和 index.js 两套文件
 """
 
 import json
@@ -12,7 +11,6 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any
 
-# ✅ 修改点：输出路径改为父目录的父目录（即仓库根目录）
 OUTPUT_DIR = Path(__file__).parent.parent
 SCRIPTS_DIR = Path(__file__).parent
 
@@ -23,7 +21,6 @@ def generate_md5(content: str) -> str:
 def load_local_configs() -> List[Dict[str, Any]]:
     """加载本地配置文件"""
     configs = []
-    # 加载 scripts/ 目录下所有的 test_config*.json
     for config_file in sorted(SCRIPTS_DIR.glob("test_config*.json")):
         try:
             with open(config_file, "r", encoding="utf-8") as f:
@@ -77,7 +74,7 @@ def merge_configs(configs: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def main():
     print("=" * 70)
-    print("🚀 MiraPlay 接口整合工作流启动 (根目录模式)")
+    print("🚀 MiraPlay 接口整合工作流启动")
     print("=" * 70)
     print(f"📅 时间: {datetime.now().isoformat()}\n")
 
@@ -96,9 +93,10 @@ def main():
     print(f" - 合并后共有 {len(merged['sites'])} 个源")
     print(f" - 合并后共有 {len(merged['parses'])} 个解析器\n")
 
-    print("💾 第3步: 生成输出文件到根目录...")
+    print("💾 第3步: 生成输出文件...")
     OUTPUT_DIR.mkdir(exist_ok=True)
 
+    # 生成 index.config.js
     config_js_content = f"""// MiraPlay Interface Aggregator
 // 生成时间: {datetime.now().isoformat()}
 // 合并源数: {len(configs)}
@@ -113,17 +111,42 @@ module.exports = index_config_default;
         f.write(config_js_content)
     print(f" ✅ 生成 {config_js_path}")
 
+    # 生成 index.config.js.md5
     config_md5 = generate_md5(config_js_content)
     config_md5_path = OUTPUT_DIR / "index.config.js.md5"
     with open(config_md5_path, "w") as f:
         f.write(config_md5)
     print(f" ✅ 生成 {config_md5_path}")
 
+    # 生成 index.js (兼容格式)
+    index_js_content = f"""// MiraPlay Interface Aggregator
+// 生成时间: {datetime.now().isoformat()}
+
+var index_config_default = {json.dumps(merged, ensure_ascii=False, indent=2)};
+
+module.exports = index_config_default;
+"""
+
+    index_js_path = OUTPUT_DIR / "index.js"
+    with open(index_js_path, "w", encoding="utf-8") as f:
+        f.write(index_js_content)
+    print(f" ✅ 生成 {index_js_path}")
+
+    # 生成 index.js.md5
+    index_md5 = generate_md5(index_js_content)
+    index_md5_path = OUTPUT_DIR / "index.js.md5"
+    with open(index_md5_path, "w") as f:
+        f.write(index_md5)
+    print(f" ✅ 生成 {index_md5_path}")
+
+    # 生成元数据
     metadata = {
         "generated_at": datetime.now().isoformat(),
         "merged_sources": len(configs),
         "total_sites": len(merged["sites"]),
+        "total_parses": len(merged["parses"]),
         "config_md5": config_md5,
+        "index_md5": index_md5,
     }
     metadata_path = OUTPUT_DIR / "metadata.json"
     with open(metadata_path, "w", encoding="utf-8") as f:
@@ -134,7 +157,7 @@ module.exports = index_config_default;
     with open(config_js_path, "r", encoding="utf-8") as f:
         verify_content = f.read()
     if generate_md5(verify_content) == config_md5:
-        print(f" ✅ MD5 验证成功")
+        print(f" ✅ index.config.js MD5 验证成功")
     else:
         print(f" ❌ MD5 验证失败")
         return False
@@ -143,7 +166,17 @@ module.exports = index_config_default;
     print("=" * 70)
     print("📊 整合完成")
     print("=" * 70)
-    print(f"🔗 新订阅链接: https://cxddgtb.github.io/mira/index.config.js.md5")
+    print(f"✅ 成功生成 4 个文件:")
+    print(f"  1. index.config.js ({len(config_js_content)} 字节)")
+    print(f"  2. index.config.js.md5")
+    print(f"  3. index.js ({len(index_js_content)} 字节)")
+    print(f"  4. index.js.md5")
+    print()
+    print(f"🔗 订阅链接 (任选其一):")
+    print(f"  - https://cxddgtb.github.io/mira/index.config.js.md5")
+    print(f"  - https://cxddgtb.github.io/mira/index.js.md5")
+    print(f"  - https://raw.githubusercontent.com/cxddgtb/mira/main/index.config.js.md5")
+    print(f"  - https://raw.githubusercontent.com/cxddgtb/mira/main/index.js.md5")
     return True
 
 if __name__ == "__main__":
