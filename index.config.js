@@ -1,5 +1,5 @@
 // MiraPlay Interface Aggregator
-// 生成时间: 2026-11-04T05:53:13.597401
+// 生成时间: 2026-11-05T06:14:31.396675
 // 合并源数: 2
 
 var index_config_default = {
